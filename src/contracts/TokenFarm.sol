@@ -22,6 +22,8 @@ contract TokenFarm {
 
     DaiToken public daiToken;
 
+    address public owner;
+
     address [] public stakers;
 
     mapping(address => uint) public stakingBalance;
@@ -38,11 +40,15 @@ contract TokenFarm {
         dappToken = _dappToken;
 
         daiToken = _daiToken;
+
+        owner = msg.sender;
     }
 
     // 1. Stakes Tokens (Deposit)
 
     function stakeTokens(uint _amount) public {
+
+        require(_amount > 0, "ammount can't be 0"); //Añadimos el requisito de que pueda stakear 0 tokens y entrar en el array de stakers
 
         // Transfer Mock Dai tokens to this contract for Staking
         daiToken.transferFrom(msg.sender, address(this), _amount); 
@@ -65,7 +71,41 @@ contract TokenFarm {
             //Le añadimos true a isStaking con esta address (msg.sender)
     }
 
-    // 2. Unstaking Tokens (Whitdraw)
+    // 2. Issuing Tokens (Rewards)
 
-    // 3. Issuing Tokens 
+    function issueTokens() public { 
+        
+        require(msg.sender == owner, "caller must be the owner"); //Solo el owner podrá llamar a esta funcion
+
+        //Recorremos todas las address que hay haciendo staking (stakers)
+        for(uint ii = 0; ii < stakers.length; ii++) {
+
+            address recipient = stakers[ii]; //Cogemos el staker
+
+            uint balance = stakingBalance[recipient]; //Cogemos su balance de daiToken 
+
+            if(balance > 0)
+                dappToken.transfer(recipient, balance); //Le asignamos la misma cantidad de dappToken que el balance de daiToken
+        } 
+    }
+
+    // 3. Unstaking Tokens (Whitdraw)
+
+    function unstakeTokens() public {
+
+        //Cogemos el balance del staking
+        uint balance = stakingBalance[msg.sender];
+
+        //Añadimos el requisito de que el balance de lo stakeado sea mayor que 0 tokens
+        require(balance > 0, "staking balance can't be 0"); 
+
+        //Transferimos los dai tokens que se stakearon en su momento de vuelta al user
+        daiToken.transfer(msg.sender, balance);
+
+        //Reseteamos el stake a 0
+        stakingBalance[msg.sender] = 0;
+
+        //El usuario ya no está stakeando
+        isStaking[msg.sender] = false;
+    }
 } 
