@@ -74,4 +74,59 @@ contract('TokenFarm', ([owner, investor]) => {
             assert.equal(balance.toString(), tokens('1000000'))
         })
     })
+
+    describe('Farming tokens', async() => {
+
+        it('Rewards investor for staking mDai tokens', async() => {
+
+            let result
+
+            //Check investor balance before staking
+            result = await daiToken.balanceOf(investor)
+
+            assert.equal(result.toString(), tokens('100'), 'Investor Mock DAI wallet balance correct before staking')
+
+            /* ---------------------------------- */
+
+            //Stake Mock DAI Tokens
+
+            await daiToken.approve(tokenFarm.address, tokens('100'), { from: investor })
+                //Aprobamos la transacción antes de comprobar (Se pasan daiToken al contrato de tokenFarm donde stakeamos DaiToken y obtenemos DappToken)
+
+            await tokenFarm.stakeTokens(tokens('100'), { from: investor })
+                //Stakeamos los tokens 
+
+            /* ---------------------------------- */
+
+            //Check staking result
+
+            result = await daiToken.balanceOf(investor)
+
+            assert.equal(result.toString(), tokens('0'), 'investor Mock DAI wallet balance correct after staking')
+                //Investor debe de tener 0 tokens en su balance porque debe de tenerlos todos en el stake
+
+            /* ---------------------------------- */
+
+            result = await daiToken.balanceOf(tokenFarm.address)
+
+            assert.equal(result.toString(), tokens('100'), 'investor Mock DAI wallet balance correct after staking')
+                //TokenFarm debe de tener 100 tokens en su balance porque se han stakeado anteriormente 
+
+            /* ---------------------------------- */
+
+            result = await tokenFarm.stakingBalance(investor) //stakingBalance es el nombre del mapping (SE LE PASA EL ADDRESS PORQUE LO INDICAMOS EN EL MAPPING)
+
+            assert.equal(result.toString(), tokens('100'), 'investor staking balance correct after staking')
+                //Investor debe de tener 100 tokens en el contrato donde se está el stake (SE LE PASA EL ADDRESS PORQUE LO INDICAMOS EN EL MAPPING)
+
+            /* ---------------------------------- */
+
+            result = await tokenFarm.isStaking(investor) //isStaking es el nombre del mapping
+
+            assert.equal(result.toString(), 'true', 'investor staking status correct after staking')
+                //Investor debe de tener 100 tokens en el contrato donde se está el stake
+        })
+
+
+    })
 })
