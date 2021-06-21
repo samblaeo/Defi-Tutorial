@@ -6,6 +6,9 @@ contract DappToken {
     uint256 public totalSupply = 1000000000000000000000000; // 1 million tokens
     uint8   public decimals = 18;
 
+    //Ethereum pone 18 decimales (sin coma, porque no se permite) y esos decimales no existen.
+    //Por eso 1.000.000.000.000.000.000.000.000 es realmente 1.000.000. 1.000.000[].000.000.000.000.000.000]
+
     event Transfer(
         address indexed _from,
         address indexed _to,
